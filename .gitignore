@@ -1,0 +1,20 @@
+# Node
+node_modules/
+dist/
+build/
+.env
+*.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/
+.DS_Store
+
+# Local configuration, backend or model files
+/backend/
+/models/
+/*.sqlite
+/*.db
+
+# Lock files you don't want to upload (optional)
+# /package-lock.json

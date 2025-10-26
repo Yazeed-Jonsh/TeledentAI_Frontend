@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "home": "Home",
+    "how": "How It Works",
+    "capture": "Capture",
+    "results": "Results",
+    "about": "About"
+  },
+  "brand": "Teledentify",
+  "langToggle": "العربية",
+  "footer": {
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "support": "support@teledentistry.ai",
+    "phone": "+1 (555) 123-4567",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "hero": {
+    "title1": "AI-based",
+    "title2": "Teledentistry",
+    "title3": "Diagnostics",
+    "subtitle": "Revolutionary AI technology for instant dental health assessment. Upload photos and get professional-grade analysis in minutes.",
+    "cta1": "Start Diagnosis",
+    "cta2": "Learn More"
+  },
+  "features": {
+    "why": "Why Choose Our AI Diagnostics?",
+    "f1": "AI-Powered Analysis",
+    "f1d": "Advanced machine learning algorithms for accurate dental diagnostics",
+    "f2": "Quick Results",
+    "f2d": "Get instant analysis results in minutes, not days",
+    "f3": "Secure & Private",
+    "f3d": "Your dental images and data are encrypted and protected",
+    "f4": "Expert Validated",
+    "f4d": "AI model trained and validated by dental professionals",
+    "ready": "Ready to Check Your Dental Health?",
+    "ready_d": "Take the first step towards better dental health with our AI-powered diagnostic tool.",
+    "get_started": "Get Started Now"
+  },
+  "capture": {
+    "title": "Dental Image Capture",
+    "subtitle": "Capture images from 5 different angles for comprehensive AI analysis",
+    "progress": "Progress",
+    "of": "of",
+    "imagesCaptured": "Images captured",
+    "allReady": "All images ready",
+    "pleaseCapture": "Please capture",
+    "viewsText": "more views",
+    "selectView": "Select View",
+    "views": {
+      "front": "Front View",
+      "left": "Left Side",
+      "right": "Right Side",
+      "upper": "Upper Teeth",
+      "lower": "Lower Teeth"
+    },
+    "captured": "Captured",
+    "notCaptured": "Not captured yet",
+    "current": "Current View:",
+    "noPreview": "No preview available",
+    "startCameraOrUpload": "Start camera or upload an image",
+    "upload": "Upload Image",
+    "startCam": "Start Camera",
+    "snap": "Take Photo",
+    "replace": "Replace Photo",
+    "tips": "Tips",
+    "tipsText": "Ensure good lighting and keep the camera steady for best results. Follow the guide for each angle.",
+    "warning": "Please capture all",
+    "beforeProceeding": "views before proceeding",
+    "missing": "Missing",
+    "images": "images",
+    "alertMessage": "Please capture all {0} images. Currently you have {1} images.",
+    "next": "Next",
+    "analyzeAll": "Analyze All Images",
+    "captureFirst": "Capture",
+    "imagesFirst": "images first"
+  }
+}
