@@ -1,0 +1,133 @@
+==================================================================================
+TESTING INSTRUCTIONS FOR VERCEL SERVERLESS FUNCTIONS
+==================================================================================
+
+Your serverless functions have been fixed! Here's how to test them:
+
+==================================================================================
+STEP 1: Create Environment File
+==================================================================================
+
+Create a file named .env.local in the TeledentAI_FrontEnd folder:
+
+HF_SPACE_URL=https://nawaf707-teledentai.hf.space
+HF_TOKEN=your_token_here_if_needed
+
+Note: HF_TOKEN is optional unless your Space is private.
+
+==================================================================================
+STEP 2: Test Locally with Vercel Dev
+==================================================================================
+
+Open a terminal in the TeledentAI_FrontEnd folder and run:
+
+    vercel dev
+
+This will start a local development server on http://localhost:3000
+
+When prompted:
+  - "Set up and develop": Yes
+  - "Which scope": Select your account
+  - "Link to existing project": No (first time)
+  - "Project name": teledentai
+  - "Directory": ./ (press Enter)
+
+==================================================================================
+STEP 3: Test the Health Endpoint
+==================================================================================
+
+In another terminal, run:
+
+    curl http://localhost:3000/api/health
+
+Or open in browser: http://localhost:3000/api/health
+
+Expected Response:
+{
+  "healthcheck": "ok",
+  "HF_SPACE_URL": "set" or "not set",
+  "HF_TOKEN": "set" or "not set",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "environment": "development",
+  "HF_SPACE_URL_value": "https://..."
+}
+
+==================================================================================
+STEP 4: Run Automated Tests
+==================================================================================
+
+From the TeledentAI_FrontEnd folder:
+
+    node test-api.js http://localhost:3000
+
+This will test all endpoints automatically.
+
+==================================================================================
+STEP 5: Deploy to Vercel
+==================================================================================
+
+Deploy your app:
+
+    vercel --prod
+
+After deployment:
+
+1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+2. Add these variables:
+   - HF_SPACE_URL = https://nawaf707-teledentai.hf.space
+   - HF_TOKEN = your_token (if needed)
+3. Select: Production, Preview, Development
+4. Click "Save"
+5. Redeploy the app
+
+==================================================================================
+STEP 6: Test Production
+==================================================================================
+
+After deployment, test your production URL:
+
+    curl https://your-app.vercel.app/api/health
+
+Or run:
+
+    node test-api.js https://your-app.vercel.app
+
+==================================================================================
+WHAT WAS FIXED
+==================================================================================
+
+✅ Converted all serverless functions to CommonJS (require/module.exports)
+✅ Fixed health endpoint to work independently (doesn't need HF Space /healthcheck)
+✅ Added proper environment variable logging (token is masked)
+✅ Fixed timeout handling with AbortController
+✅ Fixed FormData import (case sensitivity)
+✅ Added abort-controller dependency
+✅ Improved error handling and logging
+✅ Health endpoint now returns: healthcheck, HF_SPACE_URL, HF_TOKEN status
+
+==================================================================================
+TROUBLESHOOTING
+==================================================================================
+
+Issue: "Cannot find module 'node-fetch'"
+Solution: Run: cd api && npm install
+
+Issue: Health returns "not set" for variables
+Solution: Check .env.local file exists and has correct variable names
+
+Issue: Port 3000 already in use
+Solution: Use vercel dev --listen 3001
+
+Issue: Function timeout
+Solution: Check HF Space is running and accessible
+
+==================================================================================
+ENDPOINTS AVAILABLE
+==================================================================================
+
+GET  /api/health        - Check API and environment status
+POST /api/predict-json  - Get JSON detection results
+POST /api/predict-image - Get annotated image with bounding boxes
+
+==================================================================================
+

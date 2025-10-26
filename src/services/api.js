@@ -6,49 +6,40 @@
 // ==================================================================================
 
 // Import API Configuration
-import { API_BASE_URL } from '../config/apiConfig';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/apiConfig';
 
-console.log('[API] Using API Base URL:', API_BASE_URL);
+console.log('[API] Using API Base URL:', API_BASE_URL || '(relative URLs)');
+console.log('[API] Security Mode: All requests proxied through Vercel serverless functions');
 
 /**
  * ==================================================================================
- * HELPER FUNCTION: Convert base64 image data URL to Blob for API upload
+ * HELPER FUNCTION: Safely parse JSON response and detect HTML errors
  * ==================================================================================
- * This function extracts the base64 data and converts it to a Blob object
- * that can be sent in FormData to the FastAPI backend
- * 
- * @param {string} base64 - Base64 encoded image data URL (e.g., "data:image/jpeg;base64,...")
- * @returns {Blob} - Image blob ready for FormData upload
- * 
- * Process:
- * 1. Split the data URL to extract content type and base64 data
- * 2. Decode base64 string using atob()
- * 3. Convert to Uint8Array for binary data
- * 4. Create Blob with correct MIME type
+ * This prevents "Unexpected token '<'" errors when API returns HTML instead of JSON
  */
-function base64ToBlob(base64) {
+async function safeJsonParse(response) {
+  const contentType = response.headers.get('content-type');
+  const responseText = await response.text();
+  
+  console.log('[API] Response Content-Type:', contentType);
+  console.log('[API] Response status:', response.status);
+  
+  // Check if response is HTML (common error when routing is broken)
+  if (contentType && contentType.includes('text/html')) {
+    console.error('[API] ERROR: Received HTML instead of JSON!');
+    console.error('[API] This usually means the API endpoint is not found or routing is misconfigured');
+    console.error('[API] Response preview:', responseText.substring(0, 200));
+    throw new Error('API returned HTML instead of JSON. Check if /api/* endpoints are properly configured.');
+  }
+  
+  // Try to parse as JSON
   try {
-    // Extract content type (e.g., "image/jpeg") and base64 data
-    const parts = base64.split(';base64,');
-    const contentType = parts[0].split(':')[1];
-    
-    // Decode base64 to binary string
-    const raw = window.atob(parts[1]);
-    const rawLength = raw.length;
-    
-    // Convert binary string to typed array
-    const uInt8Array = new Uint8Array(rawLength);
-    for (let i = 0; i < rawLength; ++i) {
-      uInt8Array[i] = raw.charCodeAt(i);
-    }
-
-    // Create and return Blob with correct MIME type
-    const blob = new Blob([uInt8Array], { type: contentType });
-    console.log(`[API] Converted base64 to blob: ${contentType}, size: ${blob.size} bytes`);
-    return blob;
+    const data = JSON.parse(responseText);
+    return data;
   } catch (error) {
-    console.error('[API] Error converting base64 to blob:', error);
-    throw new Error('Failed to convert image data for upload');
+    console.error('[API] Failed to parse JSON response');
+    console.error('[API] Response text:', responseText.substring(0, 500));
+    throw new Error(`Invalid JSON response from API: ${error.message}`);
   }
 }
 
@@ -76,44 +67,38 @@ export async function detectObjectsFromImage(imageDataUrl) {
     console.log('[API] detectObjectsFromImage - Starting detection request...');
     
     // ==================================================================================
-    // Step 1: Convert base64 image to Blob
-    // The API expects a file upload, so we convert the base64 data URL to a Blob
+    // SECURITY UPDATE: Now calls Vercel serverless function instead of direct HF API
+    // The serverless function handles the Hugging Face Space communication securely
     // ==================================================================================
-    const blob = base64ToBlob(imageDataUrl);
+    
+    const endpoint = `${API_BASE_URL}${API_ENDPOINTS.DETECT_JSON}`;
+    console.log(`[API] Sending POST to ${endpoint}`);
     
     // ==================================================================================
-    // Step 2: Create FormData with 'file' parameter
-    // FastAPI's File(...) parameter expects a multipart/form-data upload
-    // The parameter name MUST be 'file' to match the FastAPI endpoint signature
+    // Send JSON request with base64 image to Vercel serverless function
+    // The serverless function will convert this to FormData and forward to HF Space
     // ==================================================================================
-    const formData = new FormData();
-    formData.append('file', blob, 'dental-image.jpg');  // filename is required for proper MIME handling
-
-    console.log('[API] Sending POST to /img_object_detection_to_json...');
-    
-    // ==================================================================================
-    // Step 3: Send POST request to FastAPI detection endpoint
-    // Endpoint: POST /img_object_detection_to_json
-    // Returns: JSON with detect_objects_names and detect_objects array
-    // ==================================================================================
-    const response = await fetch(`${API_BASE_URL}/img_object_detection_to_json`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
-      body: formData,
-      // Note: Do NOT set Content-Type header - browser will set it automatically
-      // with the correct boundary for multipart/form-data
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageDataUrl
+      }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[API] Detection request failed: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+      const errorData = await safeJsonParse(response).catch(() => ({ error: 'Unknown error' }));
+      console.error(`[API] Detection request failed: ${response.status} ${response.statusText}`, errorData);
+      throw new Error(`API request failed with status ${response.status}: ${errorData.error || errorData.details || 'Unknown error'}`);
     }
 
     // ==================================================================================
-    // Step 4: Parse and return JSON response
+    // Parse and return JSON response with safe HTML detection
     // Expected format: { detect_objects_names: string, detect_objects: [{name, confidence}] }
     // ==================================================================================
-    const data = await response.json();
+    const data = await safeJsonParse(response);
     console.log('[API] Detection successful:', data);
     return data;
   } catch (error) {
@@ -140,54 +125,41 @@ export async function getAnnotatedImage(imageDataUrl) {
     console.log('[API] getAnnotatedImage - Starting annotation request...');
     
     // ==================================================================================
-    // Step 1: Convert base64 image to Blob
+    // SECURITY UPDATE: Now calls Vercel serverless function instead of direct HF API
+    // The serverless function handles the Hugging Face Space communication securely
     // ==================================================================================
-    const blob = base64ToBlob(imageDataUrl);
+    
+    const endpoint = `${API_BASE_URL}${API_ENDPOINTS.DETECT_IMAGE}`;
+    console.log(`[API] Sending POST to ${endpoint}`);
     
     // ==================================================================================
-    // Step 2: Create FormData with 'file' parameter
+    // Send JSON request with base64 image to Vercel serverless function
+    // The serverless function will convert this to FormData and forward to HF Space
     // ==================================================================================
-    const formData = new FormData();
-    formData.append('file', blob, 'dental-image.jpg');
-
-    console.log('[API] Sending POST to /img_object_detection_to_img...');
-    
-    // ==================================================================================
-    // Step 3: Send POST request to FastAPI annotation endpoint
-    // Endpoint: POST /img_object_detection_to_img
-    // Returns: JPEG image with bounding boxes drawn (StreamingResponse)
-    // ==================================================================================
-    const response = await fetch(`${API_BASE_URL}/img_object_detection_to_img`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageDataUrl
+      }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[API] Annotation request failed: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+      const errorData = await safeJsonParse(response).catch(() => ({ error: 'Unknown error' }));
+      console.error(`[API] Annotation request failed: ${response.status} ${response.statusText}`, errorData);
+      throw new Error(`API request failed with status ${response.status}: ${errorData.error || errorData.details || 'Unknown error'}`);
     }
 
     // ==================================================================================
-    // Step 4: Convert response image blob back to base64 data URL
-    // The API returns a JPEG image with bounding boxes drawn on it
-    // We convert it back to base64 so it can be displayed in <img> tags
+    // Parse JSON response containing the base64 annotated image with safe HTML detection
+    // The serverless function returns: { image: "data:image/jpeg;base64,...", size: number }
     // ==================================================================================
-    const imageBlob = await response.blob();
-    console.log(`[API] Received annotated image: ${imageBlob.size} bytes`);
+    const data = await safeJsonParse(response);
+    console.log(`[API] Received annotated image: ${data.size} bytes`);
     
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        console.log('[API] Annotation successful - image converted to base64');
-        resolve(reader.result);
-      };
-      reader.onerror = (error) => {
-        console.error('[API] Error converting annotated image to base64:', error);
-        reject(error);
-      };
-      reader.readAsDataURL(imageBlob);
-    });
+    return data.image;
   } catch (error) {
     console.error('[API] Error getting annotated image:', error);
     throw error;
@@ -208,25 +180,28 @@ export async function getAnnotatedImage(imageDataUrl) {
  */
 export async function checkApiHealth() {
   try {
-    console.log('[API] Checking API health at', `${API_BASE_URL}/healthcheck`);
+    const endpoint = `${API_BASE_URL}${API_ENDPOINTS.HEALTH_CHECK}`;
+    console.log('[API] Checking API health at', endpoint);
     
     // ==================================================================================
-    // Health Check Endpoint: GET /healthcheck
-    // Returns: { "healthcheck": "Everything OK!" }
-    // This verifies that the FastAPI server is running and responsive
+    // SECURITY UPDATE: Health Check now goes through Vercel serverless function
+    // Returns: { "healthcheck": "ok", "HF_SPACE_URL": "set", "HF_TOKEN": "not set", ... }
+    // This verifies the serverless function is working and environment is configured
     // ==================================================================================
-    const response = await fetch(`${API_BASE_URL}/healthcheck`, {
+    const response = await fetch(endpoint, {
       method: 'GET',
       // Add timeout using AbortController
       signal: AbortSignal.timeout(5000)  // 5 second timeout
     });
     
     if (response.ok) {
-      const data = await response.json();
+      const data = await safeJsonParse(response);
       console.log('[API] Health check passed:', data);
       return true;
     } else {
       console.warn('[API] Health check returned non-OK status:', response.status);
+      const errorData = await safeJsonParse(response).catch(() => ({ error: 'Unknown error' }));
+      console.warn('[API] Health check error data:', errorData);
       return false;
     }
   } catch (error) {

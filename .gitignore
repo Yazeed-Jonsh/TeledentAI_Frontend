@@ -1,20 +1,30 @@
-# Node
-node_modules/
-dist/
-build/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
 .env
-*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.vscode/
-.DS_Store
 
-# Local configuration, backend or model files
-/backend/
-/models/
-/*.sqlite
-/*.db
+# Vercel
+.vercel
 
-# Lock files you don't want to upload (optional)
-# /package-lock.json
+# API dependencies
+/api/node_modules

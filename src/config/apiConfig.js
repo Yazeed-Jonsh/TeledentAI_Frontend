@@ -6,26 +6,31 @@
 // ==================================================================================
 
 /**
- * Base URL for the FastAPI backend
+ * Base URL for the API backend
  * 
  * DEVELOPMENT:
- * - Default: http://localhost:8000 (FastAPI default port)
- * - If you change the FastAPI port, update this URL
+ * - Uses relative URLs (/api/*) which will be proxied by Vercel dev server
+ * - The actual Hugging Face Space URL is only in serverless functions
  * 
  * PRODUCTION:
- * - Replace with your production API domain
- * - Example: https://api.dentalai.com
+ * - Uses relative URLs (/api/*) which are handled by Vercel serverless functions
+ * - The HF Space URL and token are stored securely in environment variables
+ * 
+ * SECURITY NOTE:
+ * - The Hugging Face Space URL and token are NEVER exposed to the frontend
+ * - All API calls go through secure serverless functions
  */
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://nawaf707-teledentai.hf.space';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 /**
  * API Endpoints
- * All endpoints relative to API_BASE_URL
+ * All endpoints now use Vercel serverless functions for security
+ * These map to the /api/* functions which proxy to Hugging Face Space
  */
 export const API_ENDPOINTS = {
-  HEALTH_CHECK: '/healthcheck',
-  DETECT_JSON: '/img_object_detection_to_json',
-  DETECT_IMAGE: '/img_object_detection_to_img',
+  HEALTH_CHECK: '/api/health',
+  DETECT_JSON: '/api/predict-json',
+  DETECT_IMAGE: '/api/predict-image',
 };
 
 /**

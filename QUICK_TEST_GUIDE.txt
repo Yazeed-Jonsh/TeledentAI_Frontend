@@ -1,0 +1,143 @@
+==================================================================================
+QUICK TESTING GUIDE - Hugging Face Space Integration
+==================================================================================
+
+Your serverless functions are ready! Here's how to test them:
+
+==================================================================================
+STEP 1: Setup Environment (30 seconds)
+==================================================================================
+
+Create file: .env.local
+
+Add:
+HF_SPACE_URL=https://nawaf707-teledentai.hf.space
+HF_TOKEN=
+
+(Leave HF_TOKEN empty unless your Space is private)
+
+==================================================================================
+STEP 2: Start Server (1 minute)
+==================================================================================
+
+cd TeledentAI_FrontEnd
+vercel dev
+
+Wait for: "Ready! Available at http://localhost:3000"
+
+==================================================================================
+STEP 3: Test Health Endpoint (30 seconds)
+==================================================================================
+
+curl http://localhost:3000/api/health
+
+✅ EXPECTED:
+{
+  "healthcheck": "ok",
+  "HF_SPACE_URL": "set",
+  "HF_TOKEN": "not set",
+  ...
+}
+
+==================================================================================
+STEP 4: Run Automated Tests (1 minute)
+==================================================================================
+
+node test-api.js http://localhost:3000
+
+✅ EXPECTED:
+📍 Test 1: Health Check
+   ✅ PASSED - Health check successful
+
+⚠️ Tests 2-3 may fail if your HF Space endpoints don't exist yet
+
+==================================================================================
+STEP 5: Check Logs (Important!)
+==================================================================================
+
+Look at your terminal running "vercel dev"
+
+✅ SUCCESSFUL REQUEST LOGS:
+[API Predict-JSON] Environment check:
+[API Predict-JSON] HF_SPACE_URL: https://nawaf707-teledentai.hf.space
+[API Predict-JSON] HF_TOKEN: NOT SET
+[API Predict-JSON] Forwarding request to: ...
+[API Predict-JSON] Successfully received prediction results
+
+❌ IF YOU SEE 404 ERROR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API Predict-JSON] ❌ 404 NOT FOUND ERROR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API Predict-JSON] Requested URL: https://...
+[API Predict-JSON] Method: POST
+[API Predict-JSON] HF Space URL: https://...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This means your HF Space doesn't have these endpoints:
+- /img_object_detection_to_json
+- /img_object_detection_to_img
+
+==================================================================================
+WHAT WAS FIXED
+==================================================================================
+
+✅ CommonJS syntax (require/module.exports)
+✅ Environment variables (HF_SPACE_URL, HF_TOKEN)
+✅ Authorization header with Bearer token
+✅ AbortController for timeout handling
+✅ Enhanced 404 error logging with debugging info
+✅ Token masking in logs (shows ***SET***)
+✅ Detailed request/response logging
+
+==================================================================================
+ENDPOINTS YOUR HF SPACE NEEDS
+==================================================================================
+
+Your Hugging Face Space must have these endpoints:
+
+1. POST /img_object_detection_to_json
+   - Accepts: multipart/form-data with "file" field
+   - Returns: JSON with detection results
+
+2. POST /img_object_detection_to_img
+   - Accepts: multipart/form-data with "file" field
+   - Returns: Annotated image (JPEG/PNG)
+
+==================================================================================
+IF 404 ERRORS OCCUR
+==================================================================================
+
+1. Verify your Space is running: https://nawaf707-teledentai.hf.space
+2. Check if endpoints exist in your Space's code
+3. Test directly with curl:
+
+   curl -X POST https://nawaf707-teledentai.hf.space/img_object_detection_to_json \
+     -F "file=@test-image.jpg"
+
+4. Check HF Space logs in Hugging Face dashboard
+5. Update endpoint paths in predict-json.js and predict-image.js if needed
+
+==================================================================================
+SECURITY VERIFICATION
+==================================================================================
+
+✅ HF_TOKEN never exposed in logs
+✅ Shows "***SET***" instead of actual token
+✅ Token only sent to Hugging Face
+✅ Environment variables properly read
+✅ All sensitive data masked in console output
+
+==================================================================================
+PRODUCTION DEPLOYMENT
+==================================================================================
+
+After local testing works:
+
+1. Deploy: vercel --prod
+2. Set environment variables in Vercel Dashboard
+3. Test: curl https://your-app.vercel.app/api/health
+
+==================================================================================
+
+See HUGGING_FACE_SETUP_VERIFICATION.md for detailed documentation!
+

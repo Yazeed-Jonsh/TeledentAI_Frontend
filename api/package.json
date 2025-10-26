@@ -1,0 +1,11 @@
+{
+  "name": "teledentai-api",
+  "version": "1.0.0",
+  "description": "Vercel serverless functions for TeledentAI",
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "form-data": "^4.0.0",
+    "abort-controller": "^3.0.0"
+  }
+}
+

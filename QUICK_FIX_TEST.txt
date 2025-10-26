@@ -1,0 +1,104 @@
+==================================================================================
+QUICK FIX TEST - Get Your App Running in 3 Minutes
+==================================================================================
+
+The "Unexpected token '<'" error has been fixed!
+
+==================================================================================
+STEP 1: Create Environment File (30 seconds)
+==================================================================================
+
+Create file: TeledentAI_FrontEnd/.env.local
+
+Paste this:
+HF_SPACE_URL=https://nawaf707-teledentai.hf.space
+HF_TOKEN=
+
+(Leave HF_TOKEN empty unless your Space is private)
+
+==================================================================================
+STEP 2: Start Development Server (1 minute)
+==================================================================================
+
+Open terminal in TeledentAI_FrontEnd folder:
+
+vercel dev
+
+When prompted:
+  - "Set up and develop": Yes
+  - "Which scope": [Select your account]
+  - "Link to existing project": No
+  - "Project name": teledentai
+  - "Directory": ./  [Press Enter]
+
+Wait for: "Ready! Available at http://localhost:3000"
+
+==================================================================================
+STEP 3: Test in Browser (30 seconds)
+==================================================================================
+
+Open: http://localhost:3000
+
+✅ EXPECTED: React app loads normally
+❌ BEFORE: "Uncaught SyntaxError: Unexpected token '<'"
+
+Check browser console (F12):
+✅ Should see: "[API] Using API Base URL: (relative URLs)"
+✅ Should NOT see: "Unexpected token '<'"
+
+==================================================================================
+STEP 4: Test API Endpoint (30 seconds)
+==================================================================================
+
+In browser, open Developer Console (F12) and paste:
+
+fetch('/api/health').then(r => r.json()).then(d => console.log(d))
+
+✅ EXPECTED OUTPUT:
+{
+  "healthcheck": "ok",
+  "HF_SPACE_URL": "set",
+  "HF_TOKEN": "not set",
+  "timestamp": "..."
+}
+
+❌ BEFORE: Error or HTML response
+
+==================================================================================
+WHAT WAS FIXED:
+==================================================================================
+
+✅ vercel.json - Removed catch-all rewrite that was serving HTML for API routes
+✅ api.js - Added safeJsonParse() to detect HTML responses
+✅ api.js - Improved error messages and logging
+✅ All API calls - Now gracefully handle unexpected response types
+
+==================================================================================
+IF IT STILL DOESN'T WORK:
+==================================================================================
+
+1. Stop vercel dev (Ctrl+C)
+2. Clear browser cache (Ctrl+Shift+Delete)
+3. Delete node_modules: rm -rf node_modules
+4. Reinstall: npm install
+5. Restart: vercel dev
+6. Hard refresh browser: Ctrl+Shift+R
+
+==================================================================================
+SUCCESS INDICATORS:
+==================================================================================
+
+✅ Browser console shows:
+   [API] Using API Base URL: (relative URLs)
+   [API] Security Mode: All requests proxied...
+
+✅ No errors in console
+
+✅ fetch('/api/health') returns JSON object
+
+✅ App loads and functions normally
+
+==================================================================================
+
+You're done! Your app is fixed and ready to use! 🚀
+
