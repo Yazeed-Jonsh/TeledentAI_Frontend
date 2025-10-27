@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, Mail, ExternalLink, QrCode } from 'lucide-react';
 import { useI18n } from '../Context/LangContext';
 
 export default function AboutPage() {
   const { lang } = useI18n();
+  const [isQRExpanded, setIsQRExpanded] = useState(false);
 
   const content = {
     en: {
@@ -66,7 +67,7 @@ export default function AboutPage() {
         { name: 'يزيد العمري', department: 'كلية الحاسبات وتقنية المعلومات، جامعة الملك عبدالعزيز', Photo: '/Yazeed.jpeg' },
         { name: 'نورة القحطاني', department: 'كلية الحاسبات وتقنية المعلومات، جامعة الملك عبدالعزيز', Photo: '/Norah.png' },
         { name: 'نواف الغامدي', department: 'كلية الحاسبات وتقنية المعلومات، جامعة الملك عبدالعزيز', Photo: '/Nawaf.jpeg' },
-        { name: 'غادة الشهري', department: 'كلية الحاسبات وتقنية المعلومات، جامعة الملك عبدالعزيز' }
+        { name: 'غادة الشهري', department: 'كلية الحاسبات وتقنية المعلومات، جامعة الملك عبدالعزيز', Photo: '/W.jpg' }
       ],
       
       story: {
@@ -241,7 +242,7 @@ export default function AboutPage() {
                 {t.contact.email.description}
               </p>
               <a
-                href="YOUR_LINKTREE_URL_HERE"
+                href="https://linktr.ee/TeledentAI"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-600 font-semibold rounded-full hover:bg-emerald-50 transition-all duration-300 hover:scale-105 shadow-lg"
@@ -265,16 +266,22 @@ export default function AboutPage() {
                 {t.contact.qr.description}
               </p>
               
-              {/* QR Code Placeholder */}
-              <div className="bg-white rounded-2xl p-6 flex items-center justify-center aspect-square max-w-xs mx-auto">
-                {/* To add QR code, replace the div below with: */}
-                {/* <img src="path-to-qr-code.png" alt="QR Code" className="max-w-full h-auto" /> */}
-                <div className="text-center text-slate-400">
-                  <QrCode className="w-24 h-24 mx-auto mb-3" />
-                  <p className="text-sm font-medium">QR Code Here</p>
-                  <p className="text-xs mt-1">Add your QR code image</p>
-                </div>
+              {/* QR Code */}
+              <div 
+                onClick={() => setIsQRExpanded(!isQRExpanded)}
+                className={`bg-white rounded-2xl p-6 flex items-center justify-center mx-auto cursor-pointer hover:shadow-2xl transition-all duration-500 ${
+                  isQRExpanded ? 'max-w-lg scale-105' : 'max-w-xs hover:scale-105'
+                }`}
+              >
+                <img 
+                  src="/qr-code.png" 
+                  alt="TeledentAI Linktree QR Code" 
+                  className="max-w-full h-auto rounded-lg transition-all duration-500"
+                />
               </div>
+              <p className="text-center text-sm text-emerald-50 mt-4 italic">
+                {isQRExpanded ? 'Click to minimize' : 'Click to expand'}
+              </p>
             </div>
           </div>
         </div>
